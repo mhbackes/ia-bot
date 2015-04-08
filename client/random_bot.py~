@@ -1,0 +1,58 @@
+import time
+import sys
+import random
+
+from base_client import LiacBot
+from board import Board
+
+WHITE = 1
+BLACK = -1
+NONE = 0
+
+# BOT =========================================================================
+class RandomBot(LiacBot):
+    name = 'Random Bot'
+
+    def __init__(self):
+        super(RandomBot, self).__init__()
+        self.last_move = None
+
+    def on_move(self, state):
+        print 'Generating a move...',
+        board = Board(state)
+
+        if state['bad_move']:
+            print state['board']
+            raw_input()
+
+        moves = board.generate()
+
+        move = random.choice(moves)
+        self.last_move = move
+        print move
+        self.send_move(move[0], move[1])
+
+    def on_game_over(self, state):
+        print 'Game Over.'
+        # sys.exit()
+# =============================================================================
+
+if __name__ == '__main__':
+    color = 0
+    port = 50100
+
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'black':
+            color = 1
+            port = 50200
+
+    bot = RandomBot()
+    bot.port = port
+
+    bot.start()
+
+
+
+
+
+
