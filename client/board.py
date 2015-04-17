@@ -1,276 +1,319 @@
+from __builtin__ import str
 WHITE = 1
 BLACK = -1
 NONE = 0
 
 # MODELS ======================================================================
 class Board(object):
-    def __init__(self, state):
-        self.cells = [[None for j in xrange(8)] for i in xrange(8)]
-        self.my_pieces = []
-        
-        PIECES = {
-            'r': Rook,
-            'p': Pawn,
-            'b': Bishop,
-            'q': Queen,
-            'n': Knight,
-        }
+	def __init__(self, state):
+		self.cells = [[None for j in xrange(8)] for i in xrange(8)]
+		self.my_pieces = []
+		self.enemy_pieces = []
+		
+		PIECES = {
+			'r': Rook,
+			'p': Pawn,
+			'b': Bishop,
+			'q': Queen,
+			'n': Knight,
+		}
 
-        my_team = state['who_moves']
-        c = state['board']
-        i = 0
+		my_team = state['who_moves']
+		c = state['board']
+		i = 0
 
-        for row in xrange(7, -1, -1):
-            for col in xrange(0, 8):
-                if c[i] != '.':
-                    cls = PIECES[c[i].lower()]
-                    team = BLACK if c[i].lower() == c[i] else WHITE
+		for row in xrange(7, -1, -1):
+			for col in xrange(0, 8):
+				if c[i] != '.':
+					cls = PIECES[c[i].lower()]
+					team = BLACK if c[i].lower() == c[i] else WHITE
 
-                    piece = cls(self, team, (row, col))
-                    self.cells[row][col] = piece
+					piece = cls(self, team, (row, col))
+					self.cells[row][col] = piece
 
-                    if team == my_team:
-                        self.my_pieces.append(piece)
+					if team == my_team:
+						self.my_pieces.append(piece)
+					else:
+						self.enemy_pieces.append(piece)
 
-                i += 1
+				i += 1
 
-    def __getitem__(self, pos):
-        if not 0 <= pos[0] <= 7 or not 0 <= pos[1] <= 7:
-            return None
+	def __getitem__(self, pos):
+		if not 0 <= pos[0] <= 7 or not 0 <= pos[1] <= 7:
+			return None
 
-        return self.cells[pos[0]][pos[1]]
+		return self.cells[pos[0]][pos[1]]
 
-    def __setitem__(self, pos, value):
-        self._cells[pos[0]][pos[1]] = value
+	def __setitem__(self, pos, value):
+		self._cells[pos[0]][pos[1]] = value
 
-    def is_empty(self, pos):
-        return self[pos] is None
-
-    def generate(self):
-        moves = []
-        for piece in self.my_pieces:
-            ms = piece.generate()
-            ms = [(piece.position, m) for m in ms]
-            moves.extend(ms)
-
-        return moves
+	def is_empty(self, pos):
+		return self[pos] is None
+	
+	def generate(self):
+		moves = []
+		for piece in self.my_pieces:
+			ms = piece.generate()
+			ms = [(piece.position, m) for m in ms]
+			moves.extend(ms)
+		return moves
+	
+	# move a peca selecionada, atualiza as pecas do oponente  se uma peca foi
+	# eliminada e inverte as pecas dos jogadores
+	def move(self, move):
+		(old, new) = move
+		if self.cells[new[0]][new[1]] != None:
+			self.enemy_pieces.remove(self.cells[new[0]][new[1]])
+		self.cells[new[0]][new[1]] = self.cells[old[0]][old[1]]
+		self.cells[new[0]][new[1]].position = new
+		self.cells[old[0]][old[1]] = None
+		
+		temp = self.my_pieces
+		self.my_pieces = self.enemy_pieces
+		self.enemy_pieces = temp
+	
+	# avaliacao heuristica do tabuleiro atual:
+	# Q*9 + N*3 + P*1 - q*9 - n*3 - p*1
+	def value(self):
+		value = 0
+		for piece in self.my_pieces:
+			value += piece.value()
+		for piece in self.enemy_pieces:
+			value -= piece.value()
+		return value
 
 class Piece(object):
-    def __init__(self):
-        self.board = None
-        self.team = None
-        self.position = None
-        self.type = None
+	def __init__(self):
+		self.board = None
+		self.team = None
+		self.position = None
+		self.type = None
 
-    def generate(self):
-        pass
+	def generate(self):
+		pass
+		
+	def value(self):
+		pass
 
-    def is_opponent(self, piece):
-        return piece is not None and piece.team != self.team
+	def is_opponent(self, piece):
+		return piece is not None and piece.team != self.team
 
 class Pawn(Piece):
-    def __init__(self, board, team, position):
-        self.board = board
-        self.team = team
-        self.position = position
+	def __init__(self, board, team, position):
+		self.board = board
+		self.team = team
+		self.position = position
 
-    def generate(self):
-        moves = []
-        my_row, my_col = self.position
+	def generate(self):
+		moves = []
+		my_row, my_col = self.position
 
-        d = self.team
+		d = self.team
 
-        # Movement to 1 forward
-        pos = (my_row + d*1, my_col)
-        if self.board.is_empty(pos):
-            moves.append(pos)
+		# Movement to 1 forward
+		pos = (my_row + d*1, my_col)
+		if self.board.is_empty(pos):
+			moves.append(pos)
 
-        # Normal capture to right
-        pos = (my_row + d*1, my_col+1)
-        piece = self.board[pos]
-        if self.is_opponent(piece):
-            moves.append(pos)
+		# Normal capture to right
+		pos = (my_row + d*1, my_col+1)
+		piece = self.board[pos]
+		if self.is_opponent(piece):
+			moves.append(pos)
 
-        # Normal capture to left
-        pos = (my_row + d*1, my_col-1)
-        piece = self.board[pos]
-        if self.is_opponent(piece):
-            moves.append(pos)
+		# Normal capture to left
+		pos = (my_row + d*1, my_col-1)
+		piece = self.board[pos]
+		if self.is_opponent(piece):
+			moves.append(pos)
 
-        return moves
+		return moves
+		
+	def value(self):
+		return 1
 
 class Rook(Piece):
-    def __init__(self, board, team, position):
-        self.board = board
-        self.team = team
-        self.position = position
-        
-    def _col(self, dir_):
-        my_row, my_col = self.position
-        d = -1 if dir_ < 0 else 1
-        for col in xrange(1, abs(dir_)):
-            yield (my_row, my_col + d*col)
+	def __init__(self, board, team, position):
+		self.board = board
+		self.team = team
+		self.position = position
+		
+	def _col(self, dir_):
+		my_row, my_col = self.position
+		d = -1 if dir_ < 0 else 1
+		for col in xrange(1, abs(dir_)):
+			yield (my_row, my_col + d*col)
 
-    def _row(self, dir_):
-        my_row, my_col = self.position
+	def _row(self, dir_):
+		my_row, my_col = self.position
 
-        d = -1 if dir_ < 0 else 1
-        for row in xrange(1, abs(dir_)):
-            yield (my_row + d*row, my_col)
+		d = -1 if dir_ < 0 else 1
+		for row in xrange(1, abs(dir_)):
+			yield (my_row + d*row, my_col)
 
-    def _gen(self, moves, gen, idx):
-        for pos in gen(idx):
-            piece = self.board[pos]
-            
-            if piece is None: 
-                moves.append(pos)
-                continue
-            
-            elif piece.team != self.team:
-                moves.append(pos)
+	def _gen(self, moves, gen, idx):
+		for pos in gen(idx):
+			piece = self.board[pos]
+			
+			if piece is None: 
+				moves.append(pos)
+				continue
+			
+			elif piece.team != self.team:
+				moves.append(pos)
 
-            break
+			break
 
-    def generate(self):
-        moves = []
+	def generate(self):
+		moves = []
 
-        my_row, my_col = self.position
-        self._gen(moves, self._col, 8-my_col) # RIGHT
-        self._gen(moves, self._col, -my_col-1) # LEFT
-        self._gen(moves, self._row, 8-my_row) # TOP
-        self._gen(moves, self._row, -my_row-1) # BOTTOM
-
-        return moves
+		my_row, my_col = self.position
+		self._gen(moves, self._col, 8-my_col) # RIGHT
+		self._gen(moves, self._col, -my_col-1) # LEFT
+		self._gen(moves, self._row, 8-my_row) # TOP
+		self._gen(moves, self._row, -my_row-1) # BOTTOM
+		
+	def value(self):
+		return 5
 
 class Bishop(Piece):
-    def __init__(self, board, team, position):
-        self.board = board
-        self.team = team
-        self.position = position
+	def __init__(self, board, team, position):
+		self.board = board
+		self.team = team
+		self.position = position
 
-    def _gen(self, moves, row_dir, col_dir):
-        my_row, my_col = self.position
+	def _gen(self, moves, row_dir, col_dir):
+		my_row, my_col = self.position
 
-        for i in xrange(1, 8):
-            row = row_dir*i
-            col = col_dir*i
-            q_row, q_col = my_row+row, my_col+col
+		for i in xrange(1, 8):
+			row = row_dir*i
+			col = col_dir*i
+			q_row, q_col = my_row+row, my_col+col
 
-            if not 0 <= q_row <= 7 or not 0 <= q_col <= 7:
-                break
+			if not 0 <= q_row <= 7 or not 0 <= q_col <= 7:
+				break
 
-            piece = self.board[q_row, q_col]
-            if piece is not None:
-                if piece.team != self.team:
-                    moves.append((q_row, q_col))
-                break
+			piece = self.board[q_row, q_col]
+			if piece is not None:
+				if piece.team != self.team:
+					moves.append((q_row, q_col))
+				break
 
-            moves.append((q_row, q_col))
+			moves.append((q_row, q_col))
 
-    def generate(self):
-        moves = []
+	def generate(self):
+		moves = []
 
-        self._gen(moves, row_dir=1, col_dir=1) # TOPRIGHT
-        self._gen(moves, row_dir=1, col_dir=-1) # TOPLEFT
-        self._gen(moves, row_dir=-1, col_dir=-1) # BOTTOMLEFT
-        self._gen(moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
+		self._gen(moves, row_dir=1, col_dir=1) # TOPRIGHT
+		self._gen(moves, row_dir=1, col_dir=-1) # TOPLEFT
+		self._gen(moves, row_dir=-1, col_dir=-1) # BOTTOMLEFT
+		self._gen(moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
 
-        return moves
+		return moves
+		
+	def value(self):
+		return 3
 
 class Queen(Piece):
-    def __init__(self, board, team, position):
-        self.board = board
-        self.team = team
-        self.position = position
+	def __init__(self, board, team, position):
+		self.board = board
+		self.team = team
+		self.position = position
 
-    def _col(self, dir_):
-        my_row, my_col = self.position
-        
-        d = -1 if dir_ < 0 else 1
-        for col in xrange(1, abs(dir_)):
-            yield (my_row, my_col + d*col)
+	def _col(self, dir_):
+		my_row, my_col = self.position
+		
+		d = -1 if dir_ < 0 else 1
+		for col in xrange(1, abs(dir_)):
+			yield (my_row, my_col + d*col)
 
-    def _row(self, dir_):
-        my_row, my_col = self.position
+	def _row(self, dir_):
+		my_row, my_col = self.position
 
-        d = -1 if dir_ < 0 else 1
-        for row in xrange(1, abs(dir_)):
-            yield (my_row + d*row, my_col)
+		d = -1 if dir_ < 0 else 1
+		for row in xrange(1, abs(dir_)):
+			yield (my_row + d*row, my_col)
 
-    def _gen_rook(self, moves, gen, idx):
-        for pos in gen(idx):
-            piece = self.board[pos]
-            
-            if piece is None: 
-                moves.append(pos)
-                continue
-            
-            elif piece.team != self.team:
-                moves.append(pos)
+	def _gen_rook(self, moves, gen, idx):
+		for pos in gen(idx):
+			piece = self.board[pos]
+			
+			if piece is None: 
+				moves.append(pos)
+				continue
+			
+			elif piece.team != self.team:
+				moves.append(pos)
 
-            break
+			break
 
-    def _gen_bishop(self, moves, row_dir, col_dir):
-        my_row, my_col = self.position
+	def _gen_bishop(self, moves, row_dir, col_dir):
+		my_row, my_col = self.position
 
-        for i in xrange(1, 8):
-            row = row_dir*i
-            col = col_dir*i
-            q_row, q_col = my_row+row, my_col+col
+		for i in xrange(1, 8):
+			row = row_dir*i
+			col = col_dir*i
+			q_row, q_col = my_row+row, my_col+col
 
-            if not 0 <= q_row <= 7 or not 0 <= q_col <= 7:
-                break
+			if not 0 <= q_row <= 7 or not 0 <= q_col <= 7:
+				break
 
-            piece = self.board[q_row, q_col]
-            if piece is not None:
-                if piece.team != self.team:
-                    moves.append((q_row, q_col))
-                break
+			piece = self.board[q_row, q_col]
+			if piece is not None:
+				if piece.team != self.team:
+					moves.append((q_row, q_col))
+				break
 
-            moves.append((q_row, q_col))
+			moves.append((q_row, q_col))
 
-    def generate(self):
-        moves = []
+	def generate(self):
+		moves = []
 
-        my_row, my_col = self.position
-        self._gen_rook(moves, self._col, 8-my_col) # RIGHT
-        self._gen_rook(moves, self._col, -my_col-1) # LEFT
-        self._gen_rook(moves, self._row, 8-my_row) # TOP
-        self._gen_rook(moves, self._row, -my_row-1) # BOTTOM
-        self._gen_bishop(moves, row_dir=1, col_dir=1) # TOPRIGHT
-        self._gen_bishop(moves, row_dir=1, col_dir=-1) # TOPLEFT
-        self._gen_bishop(moves, row_dir=-1, col_dir=-1) # BOTTOMLEFT
-        self._gen_bishop(moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
+		my_row, my_col = self.position
+		self._gen_rook(moves, self._col, 8-my_col) # RIGHT
+		self._gen_rook(moves, self._col, -my_col-1) # LEFT
+		self._gen_rook(moves, self._row, 8-my_row) # TOP
+		self._gen_rook(moves, self._row, -my_row-1) # BOTTOM
+		self._gen_bishop(moves, row_dir=1, col_dir=1) # TOPRIGHT
+		self._gen_bishop(moves, row_dir=1, col_dir=-1) # TOPLEFT
+		self._gen_bishop(moves, row_dir=-1, col_dir=-1) # BOTTOMLEFT
+		self._gen_bishop(moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
 
-        return moves
+		return moves
+	
+	def value(self):
+		return 9
 
 class Knight(Piece):
-    def __init__(self, board, team, position):
-        self.board = board
-        self.team = team
-        self.position = position
+	def __init__(self, board, team, position):
+		self.board = board
+		self.team = team
+		self.position = position
 
-    def _gen(self, moves, row, col):
-        if not 0 <= row <= 7 or not 0 <= col <= 7:
-            return
+	def _gen(self, moves, row, col):
+		if not 0 <= row <= 7 or not 0 <= col <= 7:
+			return
 
-        piece = self.board[(row, col)]
-        if piece is None or self.is_opponent(piece):
-            moves.append((row, col))
+		piece = self.board[(row, col)]
+		if piece is None or self.is_opponent(piece):
+			moves.append((row, col))
 
-    def generate(self):
-        moves = []
-        my_row, my_col = self.position
+	def generate(self):
+		moves = []
+		my_row, my_col = self.position
 
-        self._gen(moves, my_row+1, my_col+2)
-        self._gen(moves, my_row+1, my_col-2)
-        self._gen(moves, my_row-1, my_col+2)
-        self._gen(moves, my_row-1, my_col-2)
-        self._gen(moves, my_row+2, my_col+1)
-        self._gen(moves, my_row+2, my_col-1)
-        self._gen(moves, my_row-2, my_col+1)
-        self._gen(moves, my_row-2, my_col-1)
+		self._gen(moves, my_row+1, my_col+2)
+		self._gen(moves, my_row+1, my_col-2)
+		self._gen(moves, my_row-1, my_col+2)
+		self._gen(moves, my_row-1, my_col-2)
+		self._gen(moves, my_row+2, my_col+1)
+		self._gen(moves, my_row+2, my_col-1)
+		self._gen(moves, my_row-2, my_col+1)
+		self._gen(moves, my_row-2, my_col-1)
 
-        return moves
+		return moves
+		
+	def value(self):
+		return 3
 # =============================================================================
 
