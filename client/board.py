@@ -159,18 +159,6 @@ class Board(object):
 
 		self.string = self._calculate_string()
 		self.value = self.calculate_value()
-        
-        def calculate_value(self):
-                end = self.is_end()
-                if end == 1:
-                        return POS_INF
-                if end == 0:
-                        return NEG_INF
-                value = 0.0
-                for piece in self.my_pieces:
-                        value += piece.value()
-                for piece in self.enemy_pieces:
-                        value -= piece.value()
                 
 	# avaliacao heuristica do tabuleiro atual:
 	# Q*9 + N*3 + P*1 - q*9 - n*3 - p*1
