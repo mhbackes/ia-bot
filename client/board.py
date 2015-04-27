@@ -159,10 +159,22 @@ class Board(object):
 
 		self.string = self._calculate_string()
 		self.value = self.calculate_value()
-	
+        
+        def calculate_value(self):
+                end = self.is_end()
+                if end == 1:
+                        return POS_INF
+                if end == 0:
+                        return NEG_INF
+                value = 0.0
+                for piece in self.my_pieces:
+                        value += piece.value()
+                for piece in self.enemy_pieces:
+                        value -= piece.value()
+                
 	# avaliacao heuristica do tabuleiro atual:
 	# Q*9 + N*3 + P*1 - q*9 - n*3 - p*1
-	def calculate_value(self):
+        def calculate_value(self):
 		end = self.is_end()
 		if end == 1:
 			return POS_INF
@@ -224,8 +236,31 @@ class Pawn(Piece):
 			moves.append(pos)
 
 		return moves	
-			
-		
+
+	# detecta se está em uma posição para ser comido por outra peça		
+	def __to_be_eaten(self):
+                d = self.team
+                my_row, my_col = self.position
+
+                # detects pawn or queen on both diagonals
+                pos_left = (my_row + d, my_col - 1)
+                pos_right = (my_row + d, my_col + 1)
+                
+                piece = self.board[pos_left]
+                if self.is_opponent(piece):
+                        if type(piece) is (Pawn):
+                                return true
+                        elif type(piece) is (Queen):
+                                return true
+                
+                piece = self.board[pos_right]
+                if self.is_opponent(piece):
+                        if type(piece) is (Pawn):
+                                return true
+                        elif type(piece) is (Queen):
+                                return true
+                return false
+
 	def value(self):
 		row, col = self.position
 		if col < 4:
@@ -237,7 +272,11 @@ class Pawn(Piece):
 		else:
 			row_value = (7 - row) * 0.1
 		val = 1 + row_value + col_value
-		return val
+                
+        #if self.__to_be_eaten == true:
+        #    val -= 0.5
+
+        return val
 	
 	def to_string(self):
 		if self.team == WHITE:
