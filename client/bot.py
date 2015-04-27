@@ -19,7 +19,26 @@ class Bot(LiacBot):
 	def __init__(self):
 		super(Bot, self).__init__()
 		self.last_move = None
-	
+		
+	# Retorna board de maior value da lista
+	def __maxTake(self, moves):
+		(move, board) = moves.head()
+		maxi = (move, board, board.value)
+		
+		for (m, board) in moves:
+			val = board.value
+			if val > maxi[2]:
+				maxi = (m, board, val)
+		newMoves = moves.remove(maxi[0:2])
+		return (maxi, newMoves)		
+	 
+	def __sortMoves(self, moves):
+		for _ in range(5):
+			(maxi, newMoves) = self.__maxTake(moves)
+		for (_, board) in moves:
+			val = board.value
+			
+		
 	# gera o proximo movimento a partir da poda alfa e beta
 	def __alphaBeta(self, board, depth, alpha, beta):
 		end = board.is_end()
