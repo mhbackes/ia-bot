@@ -17,9 +17,10 @@ NEG_INF = -10000
 class Bot(LiacBot):
 	name = 'Bot'
 
-	def __init__(self):
+	def __init__(self, depth):
 		super(Bot, self).__init__()
 		self.transpositionTable = TranspositionTable()
+		self._depth = depth
 		self.last_move = None
 		
 	# Retorna board de maior value da lista
@@ -52,7 +53,7 @@ class Bot(LiacBot):
 		ttEntry = self.transpositionTable.lookUp(board.string, depth)
 		if ttEntry != None:
 			move, value = ttEntry
-			return move, value
+			return (move, value)
 		
 		moves = board.generate()
 		if moves == []: # DRAW
@@ -60,19 +61,21 @@ class Bot(LiacBot):
 		sorted(moves, key=itemgetter(1), reverse=True)
 		
 		firstChild = True
-		for moveBoard in moves:
-			(move, newBoard) = moveBoard
+		for moveValue in moves:
+			(move, _) = moveValue
+			board.move(move)
 			if firstChild:
 				firstChild = False
-				bestValue = -(self.__negaScout(newBoard, depth - 1, -beta, -alpha)[1])
+				bestValue = -(self.__negaScout(board, depth - 1, -beta, -alpha)[1])
 				bestMove = move
 			else:
-				score = -(self.__alphaBeta(newBoard, depth - 1, -alpha -1, -alpha)[1])
+				score = -(self.__negaScout(board, depth - 1, -alpha -1, -alpha)[1])
 				if alpha < score and score < beta:
-					score = -(self.__alphaBeta(newBoard, depth - 1, -beta, -alpha)[1])
+					score = -(self.__negaScout(board, depth - 1, -beta, -alpha)[1])
 				if bestValue < score:
 					bestValue = score
 					bestMove = move
+			board.unmove(move)
 			alpha = max(alpha, bestValue)
 			if alpha >= beta:
 				break
@@ -100,14 +103,17 @@ class Bot(LiacBot):
 		moves = board.generate()
 		if moves == []: # DRAW
 			return (None, 0)
-		
-		sorted(moves, key=itemgetter(1), reverse=True)
+		moves = sorted(moves, key=itemgetter(1), reverse=True)
 		
 		bestValue = NEG_INF
-		bestMove = moves[0][1]
-		for moveBoard in moves:
-			(move, newBoard) = moveBoard
-			val = -(self.__negaScout(newBoard, depth - 1, -beta, -alpha)[1])
+		(bestMove, _) = moves[0]
+		for moveValue in moves:
+			(move, _) = moveValue
+			
+			board.move(move)
+			val = -(self.__alphaBeta(board, depth - 1, -beta, -alpha)[1])
+			board.unmove(move)
+			
 			if bestValue < val:
 				bestValue = val
 				bestMove = move
@@ -129,7 +135,7 @@ class Bot(LiacBot):
 			raw_input()
 
 		t0 = time.time()
-		move, value = self.__alphaBeta(board, 3, NEG_INF, POS_INF)
+		move, value = self.__negaScout(board, self._depth, NEG_INF, POS_INF)
 		t = time.time()
 		print 'Time:', t - t0
 
@@ -151,13 +157,17 @@ class Bot(LiacBot):
 if __name__ == '__main__':
 	color = 0
 	port = 50100
+	depth = 4
 
 	if len(sys.argv) > 1:
 		if sys.argv[1] == 'black':
 			color = 1
 			port = 50200
+			
+	if len(sys.argv) > 2:
+		depth = int(sys.argv[2])
 
-	bot = Bot()
+	bot = Bot(depth)
 	bot.port = port
 
 	bot.start()

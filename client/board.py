@@ -16,6 +16,7 @@ class Board(object):
 		self.my_pieces = []
 		self.enemy_pieces = []
 		self.my_team = 0
+		self.removed_pieces = []
 		
 		PIECES = {
 			'r': Rook,
@@ -80,13 +81,14 @@ class Board(object):
 			ms = piece.generate()
 			ms = [(piece.position, m) for m in ms]
 			moves.extend(ms)
-		move_board = []
+		move_value = []
 		for move in moves:
-			board = copy.deepcopy(self)
-			board.move(move)
-			pair = (move, board)
-			move_board.append(pair)
-		return move_board
+			self.move(move)
+			value = self.value
+			self.unmove(move)
+			pair = (move, value)
+			move_value.append(pair)
+		return move_value
 	
 	def pawns(self, pieces):
 		pawns = []
@@ -127,16 +129,34 @@ class Board(object):
 	# eliminada e inverte as pecas dos jogadores
 	def move(self, move):
 		(old, new) = move
-		toBeRemoved = self.cells[new[0]][new[1]]
+		(new_row, new_col) = new
+		(old_row, old_col) = old
+		toBeRemoved = self.cells[new_row][new_col]
+		self.removed_pieces.append(toBeRemoved)
 		if toBeRemoved != None:
 			self.enemy_pieces.remove(toBeRemoved)
-		self.cells[new[0]][new[1]] = self.cells[old[0]][old[1]]
-		self.cells[new[0]][new[1]].position = new
-		self.cells[old[0]][old[1]] = None
+		self.cells[new_row][new_col] = self.cells[old_row][old_col]
+		self.cells[new_row][new_col].position = new
+		self.cells[old_row][old_col] = None
 		
-		temp = self.my_pieces
-		self.my_pieces = self.enemy_pieces
-		self.enemy_pieces = temp
+		self.my_pieces, self.enemy_pieces = self.enemy_pieces, self.my_pieces
+		
+		self.string = self._calculate_string()
+		self.value = self.calculate_value()
+		
+	def unmove(self, move):
+		(old, new) = move
+		(new_row, new_col) = new
+		(old_row, old_col) = old
+		self.cells[old_row][old_col] = self.cells[new_row][new_col]
+		self.cells[old_row][old_col].position = old
+		lastRemoved = self.removed_pieces.pop()
+		self.cells[new_row][new_col] = lastRemoved
+		if lastRemoved != None:
+			self.my_pieces.append(lastRemoved)
+		
+		self.my_pieces, self.enemy_pieces = self.enemy_pieces, self.my_pieces
+
 		self.string = self._calculate_string()
 		self.value = self.calculate_value()
 	
