@@ -1,4 +1,7 @@
 from __builtin__ import str
+from twisted.persisted.aot import Instance
+import copy
+
 WHITE = 1
 BLACK = -1
 NONE = 0
@@ -9,6 +12,7 @@ class Board(object):
 		self.cells = [[None for j in xrange(8)] for i in xrange(8)]
 		self.my_pieces = []
 		self.enemy_pieces = []
+		self.my_team = 0
 		
 		PIECES = {
 			'r': Rook,
@@ -18,7 +22,7 @@ class Board(object):
 			'n': Knight,
 		}
 
-		my_team = state['who_moves']
+		self.my_team = state['who_moves']
 		c = state['board']
 		i = 0
 
@@ -31,12 +35,14 @@ class Board(object):
 					piece = cls(self, team, (row, col))
 					self.cells[row][col] = piece
 
-					if team == my_team:
+					if team == self.my_team:
 						self.my_pieces.append(piece)
 					else:
 						self.enemy_pieces.append(piece)
 
 				i += 1
+				
+		self.value = self.calculate_value()
 
 	def __getitem__(self, pos):
 		if not 0 <= pos[0] <= 7 or not 0 <= pos[1] <= 7:
@@ -47,6 +53,9 @@ class Board(object):
 	def __setitem__(self, pos, value):
 		self._cells[pos[0]][pos[1]] = value
 
+	def __lt__(self, other):
+		return self.value < other.value
+
 	def is_empty(self, pos):
 		return self[pos] is None
 	
@@ -56,14 +65,56 @@ class Board(object):
 			ms = piece.generate()
 			ms = [(piece.position, m) for m in ms]
 			moves.extend(ms)
-		return moves
+		move_board = []
+		for move in moves:
+			board = copy.deepcopy(self)
+			board.move(move)
+			pair = (move, board)
+			move_board.append(pair)
+		return move_board
+	
+	def pawns(self, pieces):
+		pawns = []
+		for piece in pieces:
+			if isinstance(piece, Pawn):
+				pawns.append(piece)
+		return pawns
+	
+	# Retorna  1 se ganhou o jogo
+	#         -1 se perdeu o jogo
+	#          0 se o jogo nao acabou
+	def is_end(self):
+		enemy_pawns = self.pawns(self.enemy_pieces)
+		if enemy_pawns == []:
+			return 1
+		my_pawns = self.pawns(self.my_pieces)
+		if my_pawns == []:
+			return -1
+
+		if self.my_team == WHITE:
+			my_last_row = 7
+			enemy_last_row = 0
+		else:
+			my_last_row = 0
+			enemy_last_row = 7
+			
+		for pawn in my_pawns:
+			if pawn.position[0] == my_last_row:
+				return 1
+			
+		for pawn in enemy_pawns:
+			if pawn.position[0] == enemy_last_row:
+				return -1
+		return 0
+	
 	
 	# move a peca selecionada, atualiza as pecas do oponente  se uma peca foi
 	# eliminada e inverte as pecas dos jogadores
 	def move(self, move):
 		(old, new) = move
-		if self.cells[new[0]][new[1]] != None:
-			self.enemy_pieces.remove(self.cells[new[0]][new[1]])
+		toBeRemoved = self.cells[new[0]][new[1]]
+		if toBeRemoved != None:
+			self.enemy_pieces.remove(toBeRemoved)
 		self.cells[new[0]][new[1]] = self.cells[old[0]][old[1]]
 		self.cells[new[0]][new[1]].position = new
 		self.cells[old[0]][old[1]] = None
@@ -71,11 +122,12 @@ class Board(object):
 		temp = self.my_pieces
 		self.my_pieces = self.enemy_pieces
 		self.enemy_pieces = temp
+		self.value = self.calculate_value()
 	
 	# avaliacao heuristica do tabuleiro atual:
 	# Q*9 + N*3 + P*1 - q*9 - n*3 - p*1
-	def value(self):
-		value = 0
+	def calculate_value(self):
+		value = 0.0
 		for piece in self.my_pieces:
 			value += piece.value()
 		for piece in self.enemy_pieces:
@@ -127,10 +179,21 @@ class Pawn(Piece):
 		if self.is_opponent(piece):
 			moves.append(pos)
 
-		return moves
+		return moves	
+			
 		
 	def value(self):
-		return 1
+		row, col = self.position
+		if col < 4:
+			col_value = col * 0.1
+		else:
+			col_value = (7 - col) * 0.1
+		if self.team == WHITE:
+			row_value = row * 0.1
+		else:
+			row_value = (7 - row) * 0.1
+		val = 1 + row_value + col_value
+		return val
 
 class Rook(Piece):
 	def __init__(self, board, team, position):
