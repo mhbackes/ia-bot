@@ -1,10 +1,13 @@
 from __builtin__ import str
 from twisted.persisted.aot import Instance
 import copy
+import sys
 
 WHITE = 1
 BLACK = -1
 NONE = 0
+POS_INF = 10000
+NEG_INF = -10000
 
 # MODELS ======================================================================
 class Board(object):
@@ -41,7 +44,8 @@ class Board(object):
 						self.enemy_pieces.append(piece)
 
 				i += 1
-				
+		
+		self.string = self._calculate_string()
 		self.value = self.calculate_value()
 
 	def __getitem__(self, pos):
@@ -55,6 +59,17 @@ class Board(object):
 
 	def __lt__(self, other):
 		return self.value < other.value
+	
+	def _calculate_string(self):
+		string = ''
+		for i in xrange(8):
+			for j in xrange(8):
+				piece = self.cells[i][j]
+				if  piece == None:
+					string += '.'
+				else:
+					string += piece.to_string()
+		return string
 
 	def is_empty(self, pos):
 		return self[pos] is None
@@ -80,7 +95,7 @@ class Board(object):
 				pawns.append(piece)
 		return pawns
 	
-	# Retorna  1 se ganhou o jogo
+	# retorna  1 se ganhou o jogo
 	#         -1 se perdeu o jogo
 	#          0 se o jogo nao acabou
 	def is_end(self):
@@ -122,11 +137,17 @@ class Board(object):
 		temp = self.my_pieces
 		self.my_pieces = self.enemy_pieces
 		self.enemy_pieces = temp
+		self.string = self._calculate_string()
 		self.value = self.calculate_value()
 	
 	# avaliacao heuristica do tabuleiro atual:
 	# Q*9 + N*3 + P*1 - q*9 - n*3 - p*1
 	def calculate_value(self):
+		end = self.is_end()
+		if end == 1:
+			return POS_INF
+		if end == -1:
+			return NEG_INF
 		value = 0.0
 		for piece in self.my_pieces:
 			value += piece.value()
@@ -145,6 +166,9 @@ class Piece(object):
 		pass
 		
 	def value(self):
+		pass
+	
+	def to_string(self):
 		pass
 
 	def is_opponent(self, piece):
@@ -194,6 +218,12 @@ class Pawn(Piece):
 			row_value = (7 - row) * 0.1
 		val = 1 + row_value + col_value
 		return val
+	
+	def to_string(self):
+		if self.team == WHITE:
+			return 'C'
+		else:
+			return 'c'
 
 class Rook(Piece):
 	def __init__(self, board, team, position):
@@ -346,6 +376,12 @@ class Queen(Piece):
 	
 	def value(self):
 		return 9
+	
+	def to_string(self):
+		if self.team == WHITE:
+			return 'Q'
+		else:
+			return 'q'
 
 class Knight(Piece):
 	def __init__(self, board, team, position):
@@ -378,5 +414,11 @@ class Knight(Piece):
 		
 	def value(self):
 		return 3
+	
+	def to_string(self):
+		if self.team == WHITE:
+			return 'N'
+		else:
+			return 'n'
 # =============================================================================
 
