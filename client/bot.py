@@ -1,17 +1,11 @@
 import time
 import sys
-import random
-from operator import itemgetter, attrgetter
+from operator import itemgetter
+from constants import POS_INF, NEG_INF
 
 from base_client import LiacBot
 from board import Board
 from transposition_table import TranspositionTable
-
-WHITE = 1
-BLACK = -1
-NONE = 0
-POS_INF = 10000
-NEG_INF = -10000
 
 # BOT =========================================================================
 class Bot(LiacBot):

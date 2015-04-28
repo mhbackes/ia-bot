@@ -30,9 +30,7 @@
 Use `LiacBot` as your base class to create a new bot.
 '''
 
-import sys
 import json
-import time
 import socket
 import random
 

@@ -1,13 +1,4 @@
-from __builtin__ import str
-from twisted.persisted.aot import Instance
-import copy
-import sys
-
-WHITE = 1
-BLACK = -1
-NONE = 0
-POS_INF = 10000
-NEG_INF = -10000
+from constants import *
 
 # MODELS ======================================================================
 class Board(object):
@@ -244,9 +235,9 @@ class Pawn(Piece):
 		piece = self.board[pos_right]
 		if self.is_opponent(piece):
 			if type(piece) is (Pawn):
-				 return True
+				return True
 			elif type(piece) is (Queen):
-				 return True
+				return True
 		return False
 
 	def value(self):
