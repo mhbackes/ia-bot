@@ -45,7 +45,7 @@ class Board(object):
 						self.enemy_pieces.append(piece)
 
 				i += 1
-		
+
 		self.string = self._calculate_string()
 		self.value = self.calculate_value()
 
@@ -60,7 +60,7 @@ class Board(object):
 
 	def __lt__(self, other):
 		return self.value < other.value
-	
+
 	def _calculate_string(self):
 		string = ''
 		for i in xrange(8):
@@ -74,7 +74,7 @@ class Board(object):
 
 	def is_empty(self, pos):
 		return self[pos] is None
-	
+
 	def generate(self):
 		moves = []
 		for piece in self.my_pieces:
@@ -89,14 +89,14 @@ class Board(object):
 			pair = (move, value)
 			move_value.append(pair)
 		return move_value
-	
+
 	def pawns(self, pieces):
 		pawns = []
 		for piece in pieces:
 			if isinstance(piece, Pawn):
 				pawns.append(piece)
 		return pawns
-	
+
 	# retorna  1 se ganhou o jogo
 	#         -1 se perdeu o jogo
 	#          0 se o jogo nao acabou
@@ -114,17 +114,17 @@ class Board(object):
 		else:
 			my_last_row = 0
 			enemy_last_row = 7
-			
+
 		for pawn in my_pawns:
 			if pawn.position[0] == my_last_row:
 				return 1
-			
+
 		for pawn in enemy_pawns:
 			if pawn.position[0] == enemy_last_row:
 				return -1
 		return 0
-	
-	
+
+
 	# move a peca selecionada, atualiza as pecas do oponente  se uma peca foi
 	# eliminada e inverte as pecas dos jogadores
 	def move(self, move):
@@ -138,12 +138,12 @@ class Board(object):
 		self.cells[new_row][new_col] = self.cells[old_row][old_col]
 		self.cells[new_row][new_col].position = new
 		self.cells[old_row][old_col] = None
-		
+
 		self.my_pieces, self.enemy_pieces = self.enemy_pieces, self.my_pieces
-		
+
 		self.string = self._calculate_string()
 		self.value = self.calculate_value()
-		
+
 	def unmove(self, move):
 		(old, new) = move
 		(new_row, new_col) = new
@@ -154,15 +154,15 @@ class Board(object):
 		self.cells[new_row][new_col] = lastRemoved
 		if lastRemoved != None:
 			self.my_pieces.append(lastRemoved)
-		
+
 		self.my_pieces, self.enemy_pieces = self.enemy_pieces, self.my_pieces
 
 		self.string = self._calculate_string()
 		self.value = self.calculate_value()
-                
+
 	# avaliacao heuristica do tabuleiro atual:
 	# Q*9 + N*3 + P*1 - q*9 - n*3 - p*1
-        def calculate_value(self):
+	def calculate_value(self):
 		end = self.is_end()
 		if end == 1:
 			return POS_INF
@@ -184,10 +184,10 @@ class Piece(object):
 
 	def generate(self):
 		pass
-		
+
 	def value(self):
 		pass
-	
+
 	def to_string(self):
 		pass
 
@@ -223,31 +223,31 @@ class Pawn(Piece):
 		if self.is_opponent(piece):
 			moves.append(pos)
 
-		return moves	
+		return moves
 
-	# detecta se está em uma posição para ser comido por outra peça		
+	# detecta se esta em uma posicao para ser comido por outra peca
 	def __to_be_eaten(self):
-                d = self.team
-                my_row, my_col = self.position
+		d = self.team
+		my_row, my_col = self.position
 
-                # detects pawn or queen on both diagonals
-                pos_left = (my_row + d, my_col - 1)
-                pos_right = (my_row + d, my_col + 1)
-                
-                piece = self.board[pos_left]
-                if self.is_opponent(piece):
-                        if type(piece) is (Pawn):
-                                return true
-                        elif type(piece) is (Queen):
-                                return true
-                
-                piece = self.board[pos_right]
-                if self.is_opponent(piece):
-                        if type(piece) is (Pawn):
-                                return true
-                        elif type(piece) is (Queen):
-                                return true
-                return false
+		# detects pawn or queen on both diagonals
+		pos_left = (my_row + d, my_col - 1)
+		pos_right = (my_row + d, my_col + 1)
+
+		piece = self.board[pos_left]
+		if self.is_opponent(piece):
+			if type(piece) is (Pawn):
+				return True
+			elif type(piece) is (Queen):
+				return True
+
+		piece = self.board[pos_right]
+		if self.is_opponent(piece):
+			if type(piece) is (Pawn):
+				 return True
+			elif type(piece) is (Queen):
+				 return True
+		return False
 
 	def value(self):
 		row, col = self.position
@@ -260,12 +260,11 @@ class Pawn(Piece):
 		else:
 			row_value = (7 - row) * 0.1
 		val = 1 + row_value + col_value
-                
-        #if self.__to_be_eaten == true:
-        #    val -= 0.5
 
-        return val
-	
+		if self.__to_be_eaten == True:
+			val -= 0.5
+		return val
+
 	def to_string(self):
 		if self.team == WHITE:
 			return 'C'
@@ -277,7 +276,7 @@ class Rook(Piece):
 		self.board = board
 		self.team = team
 		self.position = position
-		
+
 	def _col(self, dir_):
 		my_row, my_col = self.position
 		d = -1 if dir_ < 0 else 1
@@ -294,11 +293,11 @@ class Rook(Piece):
 	def _gen(self, moves, gen, idx):
 		for pos in gen(idx):
 			piece = self.board[pos]
-			
-			if piece is None: 
+
+			if piece is None:
 				moves.append(pos)
 				continue
-			
+
 			elif piece.team != self.team:
 				moves.append(pos)
 
@@ -312,7 +311,7 @@ class Rook(Piece):
 		self._gen(moves, self._col, -my_col-1) # LEFT
 		self._gen(moves, self._row, 8-my_row) # TOP
 		self._gen(moves, self._row, -my_row-1) # BOTTOM
-		
+
 	def value(self):
 		return 5
 
@@ -350,7 +349,7 @@ class Bishop(Piece):
 		self._gen(moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
 
 		return moves
-		
+
 	def value(self):
 		return 3
 
@@ -362,7 +361,7 @@ class Queen(Piece):
 
 	def _col(self, dir_):
 		my_row, my_col = self.position
-		
+
 		d = -1 if dir_ < 0 else 1
 		for col in xrange(1, abs(dir_)):
 			yield (my_row, my_col + d*col)
@@ -377,11 +376,11 @@ class Queen(Piece):
 	def _gen_rook(self, moves, gen, idx):
 		for pos in gen(idx):
 			piece = self.board[pos]
-			
-			if piece is None: 
+
+			if piece is None:
 				moves.append(pos)
 				continue
-			
+
 			elif piece.team != self.team:
 				moves.append(pos)
 
@@ -420,10 +419,10 @@ class Queen(Piece):
 		self._gen_bishop(moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
 
 		return moves
-	
+
 	def value(self):
 		return 9
-	
+
 	def to_string(self):
 		if self.team == WHITE:
 			return 'Q'
@@ -458,10 +457,10 @@ class Knight(Piece):
 		self._gen(moves, my_row-2, my_col-1)
 
 		return moves
-		
+
 	def value(self):
 		return 3
-	
+
 	def to_string(self):
 		if self.team == WHITE:
 			return 'N'
