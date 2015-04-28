@@ -256,8 +256,8 @@ class Pawn(Piece):
 		row, col = self.position
 		t = self.team
 		
-		val = 200 + PIECE_SQUARE_TABLE_PAWN[t][row][col]
-		return val
+		val = 100 + PIECE_SQUARE_TABLE_PAWN[t][row][col]
+		return min(val, POS_INF)
 
 	def to_string(self):
 		if self.team == WHITE:
@@ -415,10 +415,10 @@ class Queen(Piece):
 		return moves
 
 	def value(self):
-	    row, col = self.position
-	    t = self.team
-	    val = 1000 + PIECE_SQUARE_TABLE_QUEEN[t][row][col]
-	    return val
+		row, col = self.position
+		t = self.team
+		val = 1000 + PIECE_SQUARE_TABLE_QUEEN[t][row][col]
+		return min(val, POS_INF)
 
 	def to_string(self):
 		if self.team == WHITE:
@@ -456,10 +456,10 @@ class Knight(Piece):
 		return moves
 
 	def value(self):
-	    row, col = self.position
-	    t = self.team
-	    val = 350 + PIECE_SQUARE_TABLE_KNIGHT[t][row][col]
-	    return val
+		row, col = self.position
+		t = self.team
+		val = 350 + PIECE_SQUARE_TABLE_KNIGHT[t][row][col]
+		return min(val, POS_INF)
 
 	def to_string(self):
 		if self.team == WHITE:

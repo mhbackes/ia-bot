@@ -9,7 +9,7 @@ from transposition_table import TranspositionTable
 
 # BOT =========================================================================
 class Bot(LiacBot):
-	name = 'Bot'
+	name = 'Optimus Prime'
 
 	def __init__(self, depth):
 		super(Bot, self).__init__()
@@ -121,6 +121,7 @@ class Bot(LiacBot):
 		return (bestMove, bestValue)
 
 	def on_move(self, state):
+		self.color = state["who_moves"]
 		print 'Generating a move...\n',
 		board = Board(state)
 
@@ -135,8 +136,7 @@ class Bot(LiacBot):
 
 		self.last_move = move
 		print move, ' value: ', value
-		self.send_move(move[0], move[1])
-		self.color = state["who_moves"]
+		self.send_move(move[0], move[1])	
 
 	def on_game_over(self, state):
 		if state['draw']:
