@@ -241,19 +241,22 @@ class Pawn(Piece):
 		return False
 
 	def value(self):
-		row, col = self.position
-		if col < 4:
-			col_value = col * 0.1
-		else:
-			col_value = (7 - col) * 0.1
-		if self.team == WHITE:
-			row_value = row * 0.1
-		else:
-			row_value = (7 - row) * 0.1
-		val = 1 + row_value + col_value
+		#if col < 4:
+		#	col_value = col * 0.1
+		#else:
+		#	col_value = (7 - col) * 0.1
+		#if self.team == WHITE:
+		#	row_value = row * 0.1
+		#else:
+		#	row_value = (7 - row) * 0.1
+		#val = 1 + row_value + col_value
 
-		if self.__to_be_eaten == True:
-			val -= 0.5
+		#if self.__to_be_eaten == True:
+		#	val -= 0.5
+		row, col = self.position
+		t = self.team
+		
+		val = 200 + PIECE_SQUARE_TABLE_PAWN[t][row][col]
 		return val
 
 	def to_string(self):
@@ -412,7 +415,10 @@ class Queen(Piece):
 		return moves
 
 	def value(self):
-		return 9
+	    row, col = self.position
+	    t = self.team
+	    val = 1000 + PIECE_SQUARE_TABLE_QUEEN[t][row][col]
+	    return val
 
 	def to_string(self):
 		if self.team == WHITE:
@@ -450,7 +456,10 @@ class Knight(Piece):
 		return moves
 
 	def value(self):
-		return 3
+	    row, col = self.position
+	    t = self.team
+	    val = 350 + PIECE_SQUARE_TABLE_KNIGHT[t][row][col]
+	    return val
 
 	def to_string(self):
 		if self.team == WHITE:

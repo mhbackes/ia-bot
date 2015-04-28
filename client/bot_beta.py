@@ -253,7 +253,7 @@ class Pawn(Piece):
         if self.is_opponent(piece):
             if type(piece) is (Pawn):
                 return True
-        elif type(piece) is (Queen):
+            elif type(piece) is (Queen):
                 return True
         return False
 
@@ -270,7 +270,7 @@ class Pawn(Piece):
         val = 1 + row_value + col_value
                 
         if self.__to_be_eaten == True:
-            val -= 0.5
+            val -= 0.3
 
         return val
     
@@ -430,8 +430,8 @@ class Queen(Piece):
         return moves
     
     def value(self):
-        return 9
-    
+        return 5.5
+
     def to_string(self):
         if self.team == WHITE:
             return 'Q'
