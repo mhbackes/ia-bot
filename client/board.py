@@ -73,10 +73,11 @@ class Board(object):
 			ms = [(piece.position, m) for m in ms]
 			moves.extend(ms)
 		move_value = []
+		currentValue = self.value
 		for move in moves:
 			self.move(move)
 			value = self.value
-			self.unmove(move)
+			self.unmove_with_val(move, currentValue)
 			pair = (move, value)
 			move_value.append(pair)
 		return move_value
@@ -134,6 +135,23 @@ class Board(object):
 
 		self.string = self._calculate_string()
 		self.value = self.calculate_value()
+		
+	def move_with_val(self, move, val):
+		(old, new) = move
+		(new_row, new_col) = new
+		(old_row, old_col) = old
+		toBeRemoved = self.cells[new_row][new_col]
+		self.removed_pieces.append(toBeRemoved)
+		if toBeRemoved != None:
+			self.enemy_pieces.remove(toBeRemoved)
+		self.cells[new_row][new_col] = self.cells[old_row][old_col]
+		self.cells[new_row][new_col].position = new
+		self.cells[old_row][old_col] = None
+
+		self.my_pieces, self.enemy_pieces = self.enemy_pieces, self.my_pieces
+
+		self.string = self._calculate_string()
+		self.value = val
 
 	def unmove(self, move):
 		(old, new) = move
@@ -150,6 +168,22 @@ class Board(object):
 
 		self.string = self._calculate_string()
 		self.value = self.calculate_value()
+		
+	def unmove_with_val(self, move, val):
+		(old, new) = move
+		(new_row, new_col) = new
+		(old_row, old_col) = old
+		self.cells[old_row][old_col] = self.cells[new_row][new_col]
+		self.cells[old_row][old_col].position = old
+		lastRemoved = self.removed_pieces.pop()
+		self.cells[new_row][new_col] = lastRemoved
+		if lastRemoved != None:
+			self.my_pieces.append(lastRemoved)
+
+		self.my_pieces, self.enemy_pieces = self.enemy_pieces, self.my_pieces
+
+		self.string = self._calculate_string()
+		self.value = val
 
 	# avaliacao heuristica do tabuleiro atual:
 	# Q*9 + N*3 + P*1 - q*9 - n*3 - p*1

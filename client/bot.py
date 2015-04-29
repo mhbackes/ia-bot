@@ -55,9 +55,10 @@ class Bot(LiacBot):
 		sorted(moves, key=itemgetter(1), reverse=True)
 		
 		firstChild = True
+		currentBoardValue = board.value
 		for moveValue in moves:
-			(move, _) = moveValue
-			board.move(move)
+			(move, value) = moveValue
+			board.move_with_val(move, value)
 			if firstChild:
 				firstChild = False
 				bestValue = -(self.__negaScout(board, depth - 1, -beta, -alpha)[1])
@@ -69,7 +70,7 @@ class Bot(LiacBot):
 				if bestValue < score:
 					bestValue = score
 					bestMove = move
-			board.unmove(move)
+			board.unmove_with_val(move, currentBoardValue)
 			alpha = max(alpha, bestValue)
 			if alpha >= beta:
 				break
