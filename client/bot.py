@@ -56,6 +56,7 @@ class Bot(LiacBot):
 		
 		firstChild = True
 		currentBoardValue = board.value
+		currentBoardString = board.string
 		for moveValue in moves:
 			(move, value) = moveValue
 			board.move_with_val(move, value)
@@ -70,7 +71,7 @@ class Bot(LiacBot):
 				if bestValue < score:
 					bestValue = score
 					bestMove = move
-			board.unmove_with_val(move, currentBoardValue)
+			board.unmove_with_val_str(move, currentBoardValue, currentBoardString)
 			alpha = max(alpha, bestValue)
 			if alpha >= beta:
 				break

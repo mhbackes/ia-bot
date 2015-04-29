@@ -74,10 +74,11 @@ class Board(object):
 			moves.extend(ms)
 		move_value = []
 		currentValue = self.value
+		currentString = self.string
 		for move in moves:
 			self.move(move)
 			value = self.value
-			self.unmove_with_val(move, currentValue)
+			self.unmove_with_val_str(move, currentValue, currentString)
 			pair = (move, value)
 			move_value.append(pair)
 		return move_value
@@ -183,6 +184,22 @@ class Board(object):
 		self.my_pieces, self.enemy_pieces = self.enemy_pieces, self.my_pieces
 
 		self.string = self._calculate_string()
+		self.value = val
+		
+	def unmove_with_val_str(self, move, val, str):
+		(old, new) = move
+		(new_row, new_col) = new
+		(old_row, old_col) = old
+		self.cells[old_row][old_col] = self.cells[new_row][new_col]
+		self.cells[old_row][old_col].position = old
+		lastRemoved = self.removed_pieces.pop()
+		self.cells[new_row][new_col] = lastRemoved
+		if lastRemoved != None:
+			self.my_pieces.append(lastRemoved)
+
+		self.my_pieces, self.enemy_pieces = self.enemy_pieces, self.my_pieces
+
+		self.string = str
 		self.value = val
 
 	# avaliacao heuristica do tabuleiro atual:
