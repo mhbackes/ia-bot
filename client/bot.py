@@ -52,7 +52,7 @@ class Bot(LiacBot):
 		moves = board.generate()
 		if moves == []: # DRAW
 			return (None, 0)
-		sorted(moves, key=itemgetter(1), reverse=True)
+		moves = sorted(moves, key=itemgetter(1), reverse=True)
 		
 		firstChild = True
 		currentBoardValue = board.value
