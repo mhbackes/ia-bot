@@ -2,6 +2,7 @@ import time
 import sys
 import random
 from operator import itemgetter, attrgetter
+from constants2 import *
 
 from __builtin__ import str
 from twisted.persisted.aot import Instance
@@ -192,10 +193,10 @@ class Piece(object):
 
     def generate(self):
         pass
-        
+
     def value(self):
         pass
-    
+
     def to_string(self):
         pass
 
@@ -231,9 +232,9 @@ class Pawn(Piece):
         if self.is_opponent(piece):
             moves.append(pos)
 
-        return moves    
+        return moves
 
-    # detecta se esta em uma posicao para ser comido por outra peca        
+    # detecta se esta em uma posicao para ser comido por outra peca
     def __to_be_eaten(self):
         d = self.team
         my_row, my_col = self.position
@@ -241,14 +242,14 @@ class Pawn(Piece):
         # detects pawn or queen on both diagonals
         pos_left = (my_row + d, my_col - 1)
         pos_right = (my_row + d, my_col + 1)
-                
+
         piece = self.board[pos_left]
         if self.is_opponent(piece):
             if type(piece) is (Pawn):
                 return True
             elif type(piece) is (Queen):
                 return True
-                
+
         piece = self.board[pos_right]
         if self.is_opponent(piece):
             if type(piece) is (Pawn):
@@ -258,22 +259,24 @@ class Pawn(Piece):
         return False
 
     def value(self):
-        row, col = self.position
-        if col < 4:
-            col_value = col * 0.1
-        else:
-            col_value = (7 - col) * 0.1
-        if self.team == WHITE:
-            row_value = row * 0.1
-        else:
-            row_value = (7 - row) * 0.1
-        val = 1 + row_value + col_value
-                
-        if self.__to_be_eaten == True:
-            val -= 0.3
+        #if col < 4:
+        #    col_value = col * 0.1
+        #else:
+        #    col_value = (7 - col) * 0.1
+        #if self.team == WHITE:
+        #    row_value = row * 0.1
+        #else:
+        #    row_value = (7 - row) * 0.1
+        #val = 1 + row_value + col_value
 
-        return val
-    
+        #if self.__to_be_eaten == True:
+        #    val -= 0.5
+        row, col = self.position
+        t = self.team
+        
+        val = 300 + PIECE_SQUARE_TABLE_PAWN[t][row][col]
+        return min(val, POS_INF)
+
     def to_string(self):
         if self.team == WHITE:
             return 'C'
@@ -285,7 +288,7 @@ class Rook(Piece):
         self.board = board
         self.team = team
         self.position = position
-        
+
     def _col(self, dir_):
         my_row, my_col = self.position
         d = -1 if dir_ < 0 else 1
@@ -302,11 +305,11 @@ class Rook(Piece):
     def _gen(self, moves, gen, idx):
         for pos in gen(idx):
             piece = self.board[pos]
-            
-            if piece is None: 
+
+            if piece is None:
                 moves.append(pos)
                 continue
-            
+
             elif piece.team != self.team:
                 moves.append(pos)
 
@@ -320,7 +323,7 @@ class Rook(Piece):
         self._gen(moves, self._col, -my_col-1) # LEFT
         self._gen(moves, self._row, 8-my_row) # TOP
         self._gen(moves, self._row, -my_row-1) # BOTTOM
-        
+
     def value(self):
         return 5
 
@@ -358,7 +361,7 @@ class Bishop(Piece):
         self._gen(moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
 
         return moves
-        
+
     def value(self):
         return 3
 
@@ -370,7 +373,7 @@ class Queen(Piece):
 
     def _col(self, dir_):
         my_row, my_col = self.position
-        
+
         d = -1 if dir_ < 0 else 1
         for col in xrange(1, abs(dir_)):
             yield (my_row, my_col + d*col)
@@ -385,11 +388,11 @@ class Queen(Piece):
     def _gen_rook(self, moves, gen, idx):
         for pos in gen(idx):
             piece = self.board[pos]
-            
-            if piece is None: 
+
+            if piece is None:
                 moves.append(pos)
                 continue
-            
+
             elif piece.team != self.team:
                 moves.append(pos)
 
@@ -428,9 +431,12 @@ class Queen(Piece):
         self._gen_bishop(moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
 
         return moves
-    
+
     def value(self):
-        return 5.5
+        row, col = self.position
+        t = self.team
+        val = 1500 + PIECE_SQUARE_TABLE_QUEEN[t][row][col]
+        return min(val, POS_INF)
 
     def to_string(self):
         if self.team == WHITE:
@@ -466,19 +472,23 @@ class Knight(Piece):
         self._gen(moves, my_row-2, my_col-1)
 
         return moves
-        
+
     def value(self):
-        return 3
-    
+        row, col = self.position
+        t = self.team
+        val = 350 + PIECE_SQUARE_TABLE_KNIGHT[t][row][col]
+        return min(val, POS_INF)
+
     def to_string(self):
         if self.team == WHITE:
             return 'N'
         else:
             return 'n'
+# =============================================================================
         
 # BOT =========================================================================
 class Bot(LiacBot):
-    name = 'Bot'
+    name = 'BotTESTE'
 
     def __init__(self, depth):
         super(Bot, self).__init__()
