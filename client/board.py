@@ -250,47 +250,11 @@ class Pawn(Piece):
 
 		return moves
 
-	# detecta se esta em uma posicao para ser comido por outra peca
-	def __to_be_eaten(self):
-		d = self.team
-		my_row, my_col = self.position
-
-		# detects pawn or queen on both diagonals
-		pos_left = (my_row + d, my_col - 1)
-		pos_right = (my_row + d, my_col + 1)
-
-		piece = self.board[pos_left]
-		if self.is_opponent(piece):
-			if type(piece) is (Pawn):
-				return True
-			elif type(piece) is (Queen):
-				return True
-
-		piece = self.board[pos_right]
-		if self.is_opponent(piece):
-			if type(piece) is (Pawn):
-				return True
-			elif type(piece) is (Queen):
-				return True
-		return False
-
 	def value(self):
-		#if col < 4:
-		#	col_value = col * 0.1
-		#else:
-		#	col_value = (7 - col) * 0.1
-		#if self.team == WHITE:
-		#	row_value = row * 0.1
-		#else:
-		#	row_value = (7 - row) * 0.1
-		#val = 1 + row_value + col_value
-
-		#if self.__to_be_eaten == True:
-		#	val -= 0.5
 		row, col = self.position
 		t = self.team
 		
-		val = 100 + PIECE_SQUARE_TABLE_PAWN[t][row][col]
+		val = 300 + PIECE_SQUARE_TABLE_PAWN[t][row][col]
 		return min(val, POS_INF)
 
 	def to_string(self):
@@ -451,7 +415,7 @@ class Queen(Piece):
 	def value(self):
 		row, col = self.position
 		t = self.team
-		val = 1000 + PIECE_SQUARE_TABLE_QUEEN[t][row][col]
+		val = 1500 + PIECE_SQUARE_TABLE_QUEEN[t][row][col]
 		return min(val, POS_INF)
 
 	def to_string(self):
