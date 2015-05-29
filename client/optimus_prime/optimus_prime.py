@@ -52,7 +52,7 @@ class Bot(LiacBot):
 		moves = board.generate()
 		if moves == []: # DRAW
 			return (None, 0)
-		moves = sorted(moves, key=itemgetter(1), reverse=True)
+		moves = sorted(moves, key=itemgetter(1), reverse=False)
 		
 		firstChild = True
 		currentBoardValue = board.value
@@ -99,7 +99,7 @@ class Bot(LiacBot):
 		moves = board.generate()
 		if moves == []: # DRAW
 			return (None, 0)
-		moves = sorted(moves, key=itemgetter(1), reverse=True)
+		moves = sorted(moves, key=itemgetter(1), reverse=False)
 		
 		bestValue = NEG_INF
 		(bestMove, _) = moves[0]
@@ -167,6 +167,7 @@ if __name__ == '__main__':
 	bot.port = port
 
 	bot.start()
+
 
 
 

@@ -487,7 +487,7 @@ class Bot(LiacBot):
             return (None, board.value)
         
         # busca na tabela de transposicao
-        ttEntry = self.transpositionTable.lookUp(board.string, depth)
+        ttEntry = self.transpositionTable.look_up(board.string, depth)
         if ttEntry != None:
             move, value = ttEntry
             return (move, value)
@@ -495,7 +495,7 @@ class Bot(LiacBot):
         moves = board.generate()
         if moves == []: # DRAW
             return (None, 0)
-        sorted(moves, key=itemgetter(1), reverse=True)
+        sorted(moves, key=itemgetter(1), reverse=False)
         
         firstChild = True
         for moveValue in moves:
@@ -532,7 +532,7 @@ class Bot(LiacBot):
             return (None, board.value)
         
         # busca na tabela de transposicao
-        ttEntry = self.transpositionTable.lookUp(board.string, depth)
+        ttEntry = self.transpositionTable.look_up(board.string, depth)
         if ttEntry != None:
             move, value = ttEntry
             return move, value

@@ -21,3 +21,4 @@ class TranspositionTable(object):
                 return
         self._table[key] = (move, value, depth)
         
+
