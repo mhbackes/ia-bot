@@ -7,17 +7,15 @@ class TranspositionTable(object):
         
     def look_up(self, key, depth):
         if key in self._table:
-            move, value, move_depth = self._table[key]
-            if value == POS_INF or value == NEG_INF:
-                return move, value
-            if move_depth >= depth:
-                return move, value
+            tt_move, tt_value, tt_depth = self._table[key]
+            if tt_depth >= depth:
+                return tt_move, tt_value
         return None
 
     def store(self, key, depth, move, value):
         if key in self._table:
-            _, _, tt_depth = self._table[key]
-            if tt_depth >= depth:
-                return
-        self._table[key] = move, value, depth
-        
+            _, tt_value, tt_depth = self._table[key]
+            if tt_depth < depth and tt_value < value:
+                self._table[key] = move, value, depth
+        else:
+            self._table[key] = move, value, depth

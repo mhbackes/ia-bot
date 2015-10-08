@@ -130,7 +130,7 @@ class Board(object):
 		self.cells[new_row][new_col].position = new
 		self.cells[old_row][old_col] = None
 
-		self.string = self._calculate_string() if None == value else value
+		self.string = self._calculate_string() if None == string else string
 		self.value = self._calculate_value() if None == value else value
 
 	# color = cor da peca a ser desmovida
